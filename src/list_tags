@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+
+# Author: Josenilson Ferreira da Silva
+# Date: August 2024
+# License: GNU General Public License v3.0
+
+# Calls the message function
+source ./src/default_message
+
+set -e
+
+# Header: Requests repository name, branch, and platform
+echo -e "\033[32mIf you don't know the repository ID, use the command:\033[0m"
+echo -e "\033[1;93mExample: 'gstoolbox --find plataforma username token\033[0m'"
+echo -e "\nTo GitHub - \033[36mEnter the\033[0m  'Name' \033[36mrepository\033[0m"
+echo -e "To GitLab - \033[36mEnter the\033[0m  'Id' \033[36mrepository\033[0m"
+echo -e "To Salsa - \033[36mEnter the\033[0m  'Id' \033[36mrepository\033[0m"
+read -p $'Enter the project information \033[1;94m(Name or ID)\033[0m according to the platform: ' PROJECT_ID
+repository_search_message
+
+# Function to list and display tags
+list_tags() {
+    local tags
+
+    case $PLATFORM in
+        github)
+            API_URL="https://api.github.com/repos/$USERNAME/$PROJECT_ID/tags"
+            RESPONSE=$(curl -s --write-out "%{http_code}" --output /tmp/repo_list.json \
+                --header "Authorization: token $TOKEN" "$API_URL?per_page=100")
+            HTTP_STATUS="${RESPONSE: -3}"
+            RESPONSE_BODY=$(cat /tmp/repo_list.json)
+
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+                echo "$RESPONSE_BODY" | jq -r '.[].name'
+            else
+                error_select_repository
+                exit 1
+            fi
+            ;;
+        gitlab)
+            API_URL="https://gitlab.com/api/v4/projects/$PROJECT_ID/repository/tags"
+            RESPONSE=$(curl -s --write-out "%{http_code}" --output /tmp/repo_list.json \
+                --header "PRIVATE-TOKEN: $TOKEN" "$API_URL?per_page=100")
+            HTTP_STATUS="${RESPONSE: -3}"
+            RESPONSE_BODY=$(cat /tmp/repo_list.json)
+
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+                echo "$RESPONSE_BODY" | jq -r '.[].name'
+            else
+                error_select_repository
+                exit 1
+            fi
+            ;;
+        salsa)
+            API_URL="https://salsa.debian.org/api/v4/projects/$PROJECT_ID/repository/tags"
+            RESPONSE=$(curl -s --write-out "%{http_code}" --output /tmp/repo_list.json \
+                --header "PRIVATE-TOKEN: $TOKEN" "$API_URL?per_page=100")
+            HTTP_STATUS="${RESPONSE: -3}"
+            RESPONSE_BODY=$(cat /tmp/repo_list.json)
+
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+                echo "$RESPONSE_BODY" | jq -r '.[].name'
+            else
+                error_select_repository
+                exit 1
+            fi
+            ;;
+        *)
+            platform_invalid
+            exit 1
+            ;;
+    esac
+
+    echo "$tags" | while IFS= read -r tag; do
+        echo "$tag"
+    done
+}
+
+list_tags

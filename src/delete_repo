@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+# Author: Josenilson Ferreira da Silva
+# Date: August 2024
+# License: GNU General Public License v3.0
+set -e
+
+# Calls the message function
+source ./src/default_message
+
+select_repo_id_or_name() {
+    # We use two sets to ensure there are no duplicate IDs or names
+    declare -A unique_ids
+    declare -A unique_names
+
+    while IFS=' ' read -r id name; do
+        # Checks that id is not a header and that id and name are not empty
+        if [[ "$id" != "DELETE" && -n "$id" && -n "$name" ]]; then
+            unique_ids["$id"]="$name"
+            unique_names["$name"]="$id"
+        fi
+    done < "$HOME/.config/gstoolbox/select_repo"
+
+    # Transfers the unique IDs and names to the final arrays
+    PROJECT_DELETE_ID_REPO=("${!unique_ids[@]}")
+    PROJECT_DELETE_NAME_REPO=("${unique_ids[@]}")
+}
+
+exclude() {
+  case $PLATFORM in
+        github)
+            for repo_name in "${PROJECT_DELETE_NAME_REPO[@]}"; do
+                API_URL="https://api.github.com/repos/$USERNAME/$repo_name"
+                RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --request DELETE \
+                    -H "Authorization: token $TOKEN" \
+                    -H "User-Agent: MyCustomScript/1.0" \
+                    "$API_URL")
+                if [ "$RESPONSE"  -eq 204 ]; then
+                   deleted_successfully
+                fi
+            done
+            ;;
+        gitlab)
+            for repo_id in "${PROJECT_DELETE_ID_REPO[@]}"; do
+                API_URL="https://gitlab.com/api/v4/projects/$repo_id"
+                RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --request DELETE \
+                    -H "PRIVATE-TOKEN: $TOKEN" \
+                    -H "User-Agent: MyCustomScript/1.0" \
+                    "$API_URL")
+               if [ "$RESPONSE" -eq 202 ]; then
+                    deleted_successfully
+               fi
+            done
+            ;;
+        salsa)
+            for repo_id in "${PROJECT_DELETE_ID_REPO[@]}"; do
+                API_URL="https://salsa.debian.org/api/v4/projects/$repo_id"
+                RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --request DELETE \
+                    -H "PRIVATE-TOKEN: $TOKEN" \
+                    -H "User-Agent: MyCustomScript/1.0" \
+                    "$API_URL")
+                if [ "$RESPONSE" -eq 202 ]; then
+                    deleted_successfully
+                fi
+            done
+            ;;
+        *)
+            platform_invalid
+            exit 1
+            ;;
+    esac
+}
+select_repo_id_or_name
+exclude

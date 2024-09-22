@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+
+# Author: Josenilson Ferreira da Silva
+# Date: August 2024
+# License: GNU General Public License v3.0
+set -e
+
+source ./src/default_message
+
+# License names and URLs as separate arrays
+declare -A LICENSE_NAMES
+declare -A LICENSE_URLS
+
+LICENSE_NAMES=(
+    ["1"]="GPL-3.0"
+    ["2"]="GPL-2.0"
+    ["3"]="LGPL-3.0"
+    ["4"]="LGPL-2.1"
+    ["5"]="AGPL-3.0"
+    ["6"]="AGPL-1.0"
+    ["7"]="Apache-2.0"
+    ["8"]="MIT"
+    ["9"]="CC-BY-4.0"
+)
+
+LICENSE_URLS=(
+    ["1"]="https://www.gnu.org/licenses/gpl-3.0.txt"
+    ["2"]="https://www.gnu.org/licenses/gpl-2.0.txt"
+    ["3"]="https://www.gnu.org/licenses/lgpl-3.0.txt"
+    ["4"]="https://www.gnu.org/licenses/lgpl-2.1.txt"
+    ["5"]="https://www.gnu.org/licenses/agpl-3.0.txt"
+    ["6"]="https://www.gnu.org/licenses/agpl-1.0.txt"
+    ["7"]="https://www.apache.org/licenses/LICENSE-2.0.txt"
+    ["8"]="https://opensource.org/licenses/MIT"
+    ["9"]="https://creativecommons.org/licenses/by/4.0/legalcode"
+)
+
+# Function to generate the license
+generate_license() {
+    read -p "$(echo -e '\033[1;33mDo you want to create a license? (y/n): \033[0m')" create_license
+    repository_search_message
+    if [[ "$create_license" != "y" ]]; then
+        exit 0
+    fi
+
+    # Display the license options
+    echo "Choose the license you want to download:"
+    for key in $(seq 1 ${#LICENSE_NAMES[@]}); do
+         echo "$key) ${LICENSE_NAMES[$key]}"
+    done
+
+    # Read the user's choice
+    read -p "$(echo -e '\033[1;33mEnter the number of the desired license: \033[0m')" CHOICE
+
+    # Retrieve the license name and URL based on the choice
+    LICENSE_NAME=${LICENSE_NAMES[$CHOICE]}
+    LICENSE_URL=${LICENSE_URLS[$CHOICE]}
+
+    # Check if the choice was valid
+    if [ -z "$LICENSE_NAME" ] || [ -z "$LICENSE_URL" ]; then
+       echo "Invalid choice. Exiting..."
+       exit 1
+    fi
+
+    # Output file name
+    OUTPUT_FILE="LICENSE"
+
+    # Download the license file
+    curl -A "Mozilla/5.0" -H "Accept: text/plain" -sL "$LICENSE_URL" -o "$OUTPUT_FILE"
+
+    # Check if the download was successful
+    if [[ $? -eq 0 && -s "$OUTPUT_FILE" ]]; then
+        echo "$LICENSE_NAME license saved as $OUTPUT_FILE"
+    else
+        echo "Error downloading the $LICENSE_NAME license. Please check the URL or your network connection."
+        exit 1
+     fi
+}
+
+# Function to push the license to the remote repository
+send_license() {
+    read -p "$(echo -e '\033[1;33mDo you want to push the changes to a remote repository? (yes/no): \033[0m')" push_remote
+    if [[ "$push_remote" == "yes" ]]; then
+        # Ensure the necessary information is set
+        if [ -z "$platform_host" ] || [ -z "$repo_name" ] || [ -z "$USERNAME" ]; then
+            echo "Required information is missing. Make sure platform_host, repo_name, and USERNAME are set."
+            exit 1
+        fi
+        if [ ! -d ".git" ]; then
+            git init
+        fi
+        git add .
+
+        # Determine the current branch
+        current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+        # Check if current_branch is empty (detached HEAD)
+        if [ -z "$current_branch" ]; then
+            exit 1
+        fi
+
+        # Get the current date in YYYY-MM-DD format
+        commit_date=$(date +"%Y-%m-%d")
+
+        # Commit with a message including repo name and date
+        commit_message="Update for $repo_name on $commit_date"
+        git commit -m "$commit_message"
+
+        # Push directly to the remote repository
+        git push "git@$platform_host:$USERNAME/$repo_name.git" "$current_branch"
+        echo "Changes pushed to remote repository on branch '$current_branch'."
+    fi
+}
+
+main() {
+    if [[ "$1" == "--create" ]]; then
+        generate_license
+        send_license
+    elif [[ "$1" == "--license-local" ]]; then
+        generate_license
+        if [[ "$2" == "--send" ]]; then
+            send_license
+        fi
+    else
+        echo "Usage: $0 [--create | --license-local [--send]]"
+        exit 1
+    fi
+}
+
+# Start the script
+main "$@"

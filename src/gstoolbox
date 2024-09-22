@@ -1,0 +1,209 @@
+#!/usr/bin/env bash
+
+# Author: Josenilson Ferreira da Silva
+# Date: August 2024
+# License: GNU General Public License v3.0
+
+# Calls the message function
+source ./src/default_message
+
+set -e
+
+export  PLATFORM=$2
+export USERNAME=$3
+export  TOKEN=$4
+
+# to displa'y the list of supported platforms
+list_supported_platforms() {
+echo -e "\033[32mSupported Platforms:\033[0m"
+echo -e "\033[35m- GitLab (https://gitlab.com)\033[0m"
+echo -e "\033[35m- GitHub (https://github.com)\033[0m"
+echo -e "\033[35m- Salsa (https://salsa.debian.org)\033[0m"
+}
+
+# Displays tool options
+show_help() {
+    echo "Usage: rewipe [OPTIONS] [PLATFORM] [USERNAME]"
+    echo
+    echo "Options:"
+    echo "  --create                         Create remote repositories"
+    echo "  --delete                         Deletes a user's repositories on a specific platform."
+    echo "  --find                           Finds a user's repositories on a specific platform."
+    echo "  --help                           Display this help message."
+    echo "  --license-local                  Adds a license to the project local."
+    echo "  --list-branches                  List all branches in project. Parameter: platform username token"
+    echo "  --list-files                     List all files in a directory tree by branch."
+    echo "  --list-tags                      List all tags in a branch."
+    echo "  --pipeline-trigger               Start a CI/CD pipeline to run tests."
+    echo "  --support-platform               Displays supported platforms."
+    echo "  --token-user                     Lists a specific user"
+    echo "  --token-all                      Lists all users saved token users."
+    echo "  --version                        Show the version "
+}
+
+# List existing repositories on platforms
+create_files() {
+                mkdir -p "$HOME/.config/gstoolbox"
+                touch "$HOME/.config/gstoolbox/selec_repo" "$HOME/.config/gstoolbox/token"
+}
+# Create repositories
+create_repository_remote() {
+                ./src/create_repo --create
+}
+#Locate repositories on platforms
+find_repo() {
+                ./src/save_token
+                ./src/find_repo
+}
+
+# Delete repositories
+delete_repo() {
+                ./src/save_token
+                ./src/select_del
+}
+
+# Check previously saved users
+list_token() {
+    local user="$1"
+    local token_file="$HOME/.config/gstoolbox/token"
+
+    if [ "$user" == "all" ]; then
+        grep -E '^\S+' "$token_file" | awk '{for(i=1; i<=NF; i++) $i="\033[35m"$i"\033[0m"; print}'
+    else
+        grep -E "${user}" "$token_file" | awk '{print $1, $2, $3}'
+    fi
+}
+
+license_local(){
+                   ./src/license_repo --license-local
+}
+
+list_branches() {
+                   ./src/save_token
+                   ./src/list_branches
+}
+list_files() {
+                   ./src/save_token
+                   ./src/list_files
+}
+
+list_tags() {
+                 ./src/list_tags
+}
+
+pipeline_trigger() {
+                 ./src/pipeline_trigger
+}
+cheker_version() {
+        grep 'VERSION *= *' Makefile | awk '{print $3}'
+}
+
+case "$1" in
+    --create)
+        if [ "$#" -eq 1  ]; then
+            create_repository_remote
+        else
+            incorrect_parameters
+            exit 1
+        fi
+        ;;
+    --delete)
+        if [ "$#" -eq 4 ]; then
+            create_files
+            delete_repo
+        else
+            incorrect_parameters
+            exit 1
+        fi
+        ;;
+    --find)
+        if [ "$#" -eq 4 ]; then
+            create_files
+            find_repo
+        else
+            incorrect_parameters
+            exit 1
+        fi
+        ;;
+    --help)
+            show_help
+        ;;
+    --license-local)
+        if [ "$#" -eq 1 ]; then
+            license_local
+        else
+            incorrect_parameters
+            exit 1
+        fi
+        ;;
+    --list-branches)
+        if [ "$#" -eq 4  ]; then
+            create_files
+            list_branches
+        else
+            incorrect_parameters
+            exit 1
+        fi
+        ;;
+    --list-files)
+        if [ "$#" -eq 4 ]; then
+            create_files
+            list_files
+        else
+            incorrect_parameters
+            exit 1
+        fi
+        ;;
+    --list-tags)
+        if [ "$#" -eq 4 ]; then
+            list_tags
+        else
+            incorrect_parameters
+            exit 1
+        fi
+        ;;
+     --pipeline-trigger)
+        if [ "$#" -eq 2 ]; then
+            pipeline_trigger
+        else
+            incorrect_parameters
+            exit 1
+        fi
+        ;;
+    --support-platform)
+        if [ "$#" -eq 1 ] ; then
+            list_supported_platforms
+        else
+            incorrect_parameters
+            exit 1
+        fi
+        ;;
+   --token-user)
+        if [ "$#" -ne 2 ]; then
+            incorrect_parameters
+            exit 1
+        fi
+        list_token "$2"
+        ;;
+    --token-all)
+        if [ "$#" -ne 1 ]; then
+            incorrect_parameters
+            exit 1
+        fi
+        list_token "all"
+        ;;
+    --version)
+        if [ "$#" -ne 2 ]; then
+            cheker_version
+        else
+            incorrect_parameters
+            exit 1
+        fi
+        ;;
+    *)
+        incorrect_parameters
+        consult_manual
+        exit 1
+        ;;
+esac
+exit 0

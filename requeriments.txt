@@ -1,0 +1,7 @@
+jq
+git
+curl
+nano
+awk
+printf
+

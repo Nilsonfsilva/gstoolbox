@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+# Author: Josenilson Ferreira da Silva
+# Date: August 2024
+# License: GNU General Public License v3.0
+
+set -e
+
+# Calls the message function
+source ./src/default_message
+
+#to search for a user's repositories on a platform
+search_repo() {
+
+case $PLATFORM in
+        github)
+            repository_search_message
+            API_URL="https://api.github.com/users/$USERNAME/repos"
+            RESPONSE=$(curl -s --write-out "%{http_code}" --output /tmp/repo_list.json \
+                --header "Authorization: token $TOKEN" "$API_URL?per_page=100")
+            HTTP_STATUS="${RESPONSE: -3}"
+            RESPONSE_BODY=$(cat /tmp/repo_list.json)
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+                echo "$RESPONSE_BODY" | jq -r '.[] | "\(.id) \(.name)"'
+            else
+                error_select_repository
+                exit 1
+            fi
+            ;;
+        gitlab)
+            repository_search_message
+            API_URL="https://gitlab.com/api/v4/users/$USERNAME/projects"
+            RESPONSE=$(curl -s --write-out "%{http_code}" --output /tmp/repo_list.json \
+                --header "Authorization: token $TOKEN" "$API_URL?per_page=100")
+            HTTP_STATUS="${RESPONSE: -3}"
+            RESPONSE_BODY=$(cat /tmp/repo_list.json)
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+                echo "$RESPONSE_BODY" | jq -r '.[] | "\(.id) \(.name)"'
+            else
+                error_select_repository
+                exit 1
+            fi
+            ;;
+        salsa)
+            repository_search_message
+            API_URL="https://salsa.debian.org/api/v4/users/$USERNAME/projects"
+            RESPONSE=$(curl -s --write-out "%{http_code}" --output /tmp/repo_list.json \
+                --header "Authorization: token $TOKEN" "$API_URL?per_page=100")
+            HTTP_STATUS="${RESPONSE: -3}"
+            RESPONSE_BODY=$(cat /tmp/repo_list.json)
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+                echo "$RESPONSE_BODY" | jq -r '.[] | "\(.id) \(.name)"'
+            else
+                error_select_repository
+                exit 1
+            fi
+            ;;
+        *)
+            platform_invalid
+            exit 1
+            ;;
+    esac
+}
+search_repo

@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+
+# Author: Josenilson Ferreira da Silva
+# Date: August 2024
+# License: GNU General Public License v3.0
+
+# Calls the message function
+source ./src/default_message
+
+set -e
+
+# Header: Requests repository name, branch, and platform
+echo -e "To GitHub - \033[36mEnter the\033[0m  'Name' \033[36mrepository\033[0m"
+echo -e "To GitLab - \033[36mEnter the\033[0m  'Id' \033[36mrepository\033[0m"
+echo -e "To Salsa - \033[36mEnter the\033[0m  'Id' \033[36mrepository\033[0m"
+
+echo -e "\n\033[32mIf you don't know the repository ID, use the command:\033[0m"
+echo -e "\033[32mgstoolbox --find plataforma username token\033[0m"
+read -p "Enter the project information (Name or ID) according to the platform: " PROJECT_ID
+
+read -p "Enter the branch name (default: master): " BRANCH
+BRANCH=${BRANCH:-master}  # Sets "master" as default if no branch is specified
+repository_search_message
+
+# Function to list and display files and directories in tree format
+display_tree() {
+    local path=$1
+    local prefix=$2
+    local items
+
+case $PLATFORM in
+    github)
+        response=$(curl -s -w "%{http_code}" -H "Authorization: token $TOKEN" \
+            "https://api.github.com/repos/$USERNAME/$PROJECT_ID/contents/$path?ref=$BRANCH")
+        http_code=$(echo "$response" | tail -n1)
+
+        if [[ "$http_code" == 2* ]]; then
+            body=$(echo "$response" | sed '$d')
+            items=$(echo "$body" | jq -r '.[] | "\(.type) \(.path)"')
+        else
+            error_select_repository
+        fi
+        ;;
+    gitlab)
+        response=$(curl -s -w "\n%{http_code}" -H "PRIVATE-TOKEN: $TOKEN" \
+            "https://gitlab.com/api/v4/projects/$PROJECT_ID/repository/tree?ref=$BRANCH&path=$path")
+        http_code=$(echo "$response" | tail -n1)
+
+        if [[ "$http_code" == 2* ]]; then
+            body=$(echo "$response" | sed '$d')
+            items=$(echo "$body" | jq -r '.[] | "\(.type) \(.path)"')
+        else
+            error_select_repository
+        fi
+        ;;
+    salsa)
+        response=$(curl -s -w "\n%{http_code}" -H "PRIVATE-TOKEN: $TOKEN" \
+            "https://salsa.debian.org/api/v4/projects/$PROJECT_ID/repository/tree?ref=$BRANCH&path=$path")
+        http_code=$(echo "$response" | tail -n1)
+
+        if [[ "$http_code" == 2* ]]; then
+            body=$(echo "$response" | sed '$d')
+            items=$(echo "$body" | jq -r '.[] | "\(.type) \(.path)"')
+        else
+            error_select_repository
+        fi
+        ;;
+    *)
+        platform_invalid
+        exit 1
+        ;;
+esac
+
+    while IFS= read -r item; do
+        local type=$(echo "$item" | awk '{print $1}')
+        local name=$(echo "$item" | awk '{print $2}')
+
+        if [[ "$type" == "tree" || "$type" == "dir" ]]; then
+            echo -e "${prefix}\033[35m├── $name/\033[0m"
+            display_tree "$name" "$prefix│   "
+        else
+            echo "${prefix}├── $name"
+        fi
+    done <<< "$items"
+}
+
+    list_files_branches_successfully
+    echo "$REPO @ $BRANCH"
+
+display_tree "" ""
+

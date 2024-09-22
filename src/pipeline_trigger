@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+# Author: Josenilson Ferreira da Silva
+# Date: August 2024
+# License: GNU General Public License v3.0
+
+# Calls the message function
+source ./src/default_message
+
+set -e
+
+# Define variables
+platform="$2"  # Platform option to be passed as the first argument
+echo -e "To GitHub - \033[36mEnter the\033[0m  'Name' \033[36mrepository\033[0m"
+echo -e "To GitLab - \033[36mEnter the\033[0m  'Id' \033[36mrepository\033[0m"
+echo -e "To Salsa - \033[36mEnter the\033[0m  'Id' \033[36mrepository\033[0m"
+read -p "$(echo -e '\033[1;33mEnter the project information \033[0m(\033[1;94mName or ID\033[0m) according to the platform: ')" project_id
+read -p "$(echo -e '\033[1;33mEnter the reference name (branch or tag): \033[0m')" ref_name
+echo -e "\n\033[1;33mFor Gitlab and Salsa, before requesting this action, do:\033[0m\n\
+1. \033[1;33mEnable: \033[1;34mCI/CD > general pipelines > CI/CD configuration file > .gitlab-ci.yml\033[0m\n\
+2. \033[1;33mGenerate a trigger token: \033[1;34mSettings > CI/CD > Pipeline Trigger Tokens\033[0m"
+read -p "$(echo -e '\033[1;33mEnter your trigger token: \033[0m')" TRIGGER_TOKEN
+
+# Function to trigger GitLab pipeline as per official recommendation
+trigger_gitlab_pipeline() {
+  repository_search_message
+
+  response=$(curl --silent --write-out "%{http_code}" --output /tmp/curl_response.json --request POST \
+    --form "token=$TRIGGER_TOKEN" \
+    --form "ref=$ref_name" \
+    "https://gitlab.com/api/v4/projects/$project_id/trigger/pipeline")
+
+  if [[ "$response" -ge 200 && "$response" -lt 300 ]]; then
+    pipeline_id=$(jq -r '.id' /tmp/curl_response.json)
+    pipeline_successfully
+  else
+    case "$response" in
+      400)
+        echo -e "\033[1;31mGitLab: Bad request - check the parameters.\033[0m"
+        ;;
+      401)
+        echo -e "\033[1;31mGitLab: Unauthorized - invalid token or credentials.\033[0m"
+        ;;
+      404)
+        echo -e "\033[1;31mGitLab: Project not found or incorrect URL.\033[0m"
+        ;;
+      500)
+        echo -e "\033[1;31mGitLab: Server error - try again later.\033[0m"
+        ;;
+      *)
+        echo -e "\033[1;31mGitLab: Unknown error occurred. Response code: $response\033[0m"
+        ;;
+    esac
+    exit 1
+  fi
+}
+
+# Function to trigger Salsa pipeline with a different approach
+trigger_salsa_pipeline() {
+ repository_search_message
+
+  response=$(curl --silent --write-out "%{http_code}" --output /tmp/curl_response.json --request POST \
+    --form "token=$TRIGGER_TOKEN" \
+    --form "ref=$ref_name" \
+    "https://salsa.debian.org/api/v4/projects/$project_id/trigger/pipeline")
+
+  if [[ "$response" -ge 200 && "$response" -lt 300 ]]; then
+    pipeline_id=$(jq -r '.id' /tmp/curl_response.json)
+    pipeline_successfully
+  else
+    if [[ "$response" -ge 400 && "$response" -lt 500 ]]; then
+      echo -e "\033[1;31mSalsa: Client error - check the request parameters or token.\033[0m"
+    elif [[ "$response" -eq 500 ]]; then
+      echo -e "\033[1;31mSalsa: Server error - try again later.\033[0m"
+    else
+      echo -e "\033[1;31mSalsa: Unknown error occurred. Response code: $response\033[0m"
+    fi
+    exit 1
+  fi
+}
+
+# Executes the appropriate pipeline trigger based on the platform
+case "$platform" in
+  "gitlab")
+    trigger_gitlab_pipeline
+    ;;
+  "salsa")
+    trigger_salsa_pipeline
+    ;;
+  *)
+    platform_invalid
+    exit 1
+    ;;
+esac

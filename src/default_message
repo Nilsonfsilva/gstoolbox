@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+# Author: Josenilson Ferreira da Silva
+# Date: August 2024
+# License: GNU General Public License v3.0
+set -e
+
+repository_search_message() {
+echo -e "\033[1;33mPlease wait while we process your request... \033[1;32m$PLATFORM\033[1;33m\033[0m"
+}
+
+deleted_successfully() {
+echo -e "\033[1;32mRepository deleted successfully.\033[0m"
+}
+
+error_select_repository() {
+# Mensagens
+echo -e "\033[1;31mError selecting repository \033[1;34m$USERNAME\033[1;31m on platform \033[1;34m$PLATFORM\033[0m!"
+echo -e "\033[1;31mCheck if the token is correct or valid!\033[0m"
+}
+
+error_delete_repository() {
+echo -e "\033[1;31mError deleting repository with \033[1;34m$repo_id\033[0m\033[1;31m."
+echo -e " Check if the token is correct or if it is a valid token!\033[0m"
+}
+
+create_repository() {
+echo -e "\033[1;31mPlease wait while we create the \033[1;34m${repo_name}\033[1;31m repository\033[0m"
+}
+
+create_repository_successfully() {
+echo -e "\e[32;1mRepository '$repo_name' created successfully on Salsa.\e[0m"
+}
+
+failed_create_repository() {
+echo -e "\033[1;31mFailed to create repository in \033[1;34m${platform_option}\033[1;31m. Check the data and try again\033[0m"
+}
+
+platform_invalid() {
+    echo -e "\033[1;31mInvalid platform! Check the entered data!\033[0m"
+    echo -e "\033[1;31mSee the supported platforms with the command: \033[1;33mgstoolbox --support platform\033[0m"
+}
+
+incorrect_parameters() {
+    echo -e "\033[1;31mIncorrect parameters! See: \033[1;33mgstoolbox --help\033[0m"
+}
+
+consult_manual() {
+    echo -e "\033[1;31mIf you prefer, consult a manual in the \033[1;33mEXAMPLES\033[1;31m section\033[0m"
+}
+
+list_branch_successfully() {
+echo -e "\033[1;31mBranches in repository \033[1;34m'$PROJECT_ID'\033[0m:"
+
+}
+
+branches_found() {
+echo -e "\033[1;33m$branch\033[0m"
+}
+
+list_files_branches_successfully() {
+echo -e "\033[1;32mThese are the files that are part of the \033[1;33m$BRANCH\033[1;32m branch\033[0m"
+}
+
+pipeline_successfully(){
+echo -e "\033[1;33mSalsa project $project_id pipeline successfully triggered:\033[1;32m $pipeline_id\033[0m"
+}

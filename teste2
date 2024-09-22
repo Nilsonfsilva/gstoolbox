@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Função para capturar respostas do usuário
+ask_question() {
+    echo -n "$1"
+    read response
+    echo "$response"
+}
+
+# Perguntas para preencher o README
+tool_name=$(ask_question "What is the name of the tool? ")
+description=$(ask_question "What does the tool do? ")
+target_audience=$(ask_question "Who is the target audience? ")
+platform_support=$(ask_question "Which platforms does it support? (e.g., GitHub, GitLab, etc.) ")
+features=$(ask_question "List the main features (separated by commas): ")
+installation_steps=$(ask_question "Describe the installation process: ")
+usage_instructions=$(ask_question "Provide basic usage examples: ")
+contributing_info=$(ask_question "How can users contribute? ")
+license_info=$(ask_question "What is the license for this project? ")
+
+# Criação do arquivo README.md
+cat <<EOL > README.md
+# 🛠️ $tool_name
+
+**$tool_name** is a powerful command-line tool that simplifies and automates tasks, making it easier to manage $target_audience repositories across multiple platforms.
+
+## 🚀 Features
+
+- **🔗 Multi-platform support:** $platform_support
+- **🗑️ Delete repositories:** Easily delete one or more repositories at once.
+- **📁 Create new repositories:** Quickly create repositories on supported platforms.
+- **📋 List repository files:** View an overview of files in your repositories.
+- **🔍 Search repositories:** Find repositories by name or specific criteria.
+- **📂 Clone repositories:** Clone repositories to your local environment.
+- **📤 Push updates:** Push changes directly via CLI.
+- **🔐 Secure token management:** Manage your API tokens securely for multiple platforms.
+- **💻 Terminal integration:** Ideal for users who prefer speed and efficiency in the terminal.
+
+## 📦 Installation
+
+$installation_steps
+
+## 🛠️ Usage
+
+Here are some common commands you can use with $tool_name:
+
+$usage_instructions
+
+## 🤝 Contributing
+
+$contributing_info
+
+## 📝 License
+
+This project is licensed under the [$license_info](LICENSE).
+
+## 🙏 Acknowledgements
+
+Thanks to all contributors and the open-source community for their support and collaboration.
+
+EOL
+
+echo "README.md has been generated successfully."
+

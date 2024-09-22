@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+
+# Author: Josenilson Ferreira da Silva
+# Date: August 2024
+# License: GNU General Public License v3.0
+set -e
+
+# Calls standard project messages
+source ./src/default_message
+
+LOCAL_DIR="$HOME/.config/gstoolbox"
+MARK_FILE="$LOCAL_DIR/select_repo"
+DELETE_REPO_FILE="./delete_repo"
+
+# to search for a user's repositories on a platform
+search_repo() {
+    case $PLATFORM in
+        github)
+            repository_search_message
+            API_URL="https://api.github.com/users/$USERNAME/repos"
+            RESPONSE=$(curl -s --write-out "%{http_code}" --output /tmp/repo_list.json \
+                --header "Authorization: token $TOKEN" "$API_URL?per_page=100")
+            HTTP_STATUS="${RESPONSE: -3}"
+            RESPONSE_BODY=$(cat /tmp/repo_list.json)
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+                echo "$RESPONSE_BODY" | jq -r '.[] | "\(.id) \(.name)"' > "$MARK_FILE"
+            else
+                error_select_repository
+                exit 1
+            fi
+            ;;
+         gitlab)
+             repository_search_message
+             API_URL="https://gitlab.com/api/v4/users/$USERNAME/projects"
+             RESPONSE=$(curl -s --write-out "%{http_code}" --output /tmp/project_list.json \
+                 --header "Authorization: Bearer $TOKEN" "$API_URL?per_page=100")
+             HTTP_STATUS="${RESPONSE: -3}"
+             RESPONSE_BODY=$(cat /tmp/project_list.json)
+             if [ "$HTTP_STATUS" -eq 200 ]; then
+                 echo "$RESPONSE_BODY" | jq -r '.[] | "\(.id) \(.name)"' > "$MARK_FILE"
+             else
+                 error_select_repository
+                 exit 1
+             fi
+             ;;
+        salsa)
+            repository_search_message
+            API_URL="https://salsa.debian.org/api/v4/users/$USERNAME/projects"
+            RESPONSE=$(curl -s --write-out "%{http_code}" --output /tmp/project_list.json \
+                 --header "Authorization: Bearer $TOKEN" "$API_URL?per_page=100")
+             HTTP_STATUS="${RESPONSE: -3}"
+             RESPONSE_BODY=$(cat /tmp/project_list.json)
+             if [ "$HTTP_STATUS" -eq 200 ]; then
+                 echo "$RESPONSE_BODY" | jq -r '.[] | "\(.id) \(.name)"' > "$MARK_FILE"
+             else
+                 error_select_repository
+                 exit 1
+             fi
+             ;;
+        *)
+            platform_invalid
+            exit 1
+            ;;
+    esac
+
+    # Display the list of projects
+    echo "List of projects:"
+    awk '{printf "%-20s %s\n", $1, $2}' "$MARK_FILE"
+}
+
+# Main that handles the selection and deletion of repositories
+select_repo() {
+    read -p "Do you want to select repositories for deletion? (1: Yes, 2: No): " CHOICE
+
+    if [ "$CHOICE" -eq 1 ]; then
+        # Adds a message to the file header
+       echo -e "DELETE THE LINES THAT CONTAIN THE REPOSITORIES THAT SHOULD NOT BE DELETED.\n" | cat - "$MARK_FILE" > "$MARK_FILE.tmp" && mv "$MARK_FILE.tmp" "$MARK_FILE"
+
+        # Open the file with the text editor configured in .bashrc
+        EDITOR=${EDITOR:-nano}
+        $EDITOR "$MARK_FILE"
+
+        # Read the contents of the file marked for deletion starting from the second line
+        REPOSITORY_NAMES=($(tail -n +2 "$MARK_FILE" | grep -v "^#" | awk '{$1=""; print $0}' | sed 's/^ *//'))
+        echo "Names of the repositories to be deleted:"
+
+        # Displays the formatted list of repositories to be deleted
+        echo -e "\033[1;31mName\033[0m"
+        for REPO_NAME in "${REPOSITORY_NAMES[@]}"; do
+            echo "$REPO_NAME"
+        done
+
+        # Saves the names of projects to be deleted in the PROJECT_IDS_DELETE variable
+        PROJECT_IDS_DELETE=$(IFS=$' '; echo "${REPOSITORY_NAMES[*]}")
+
+        # Displays the repositories to be deleted on the screen
+        echo -e "\033[1;32mProceeding with the deletion of repositories:\033[0m"
+        echo -e "\033[1;32mName\033[0m"
+        for REPO_NAME in "${REPOSITORY_NAMES[@]}"; do
+            echo "$REPO_NAME"
+        done
+
+        # Calls external script to delete repositories
+        repository_search_message
+        for REPO_NAME in "${REPOSITORY_NAMES[@]}"; do
+            ./src/delete_repo "$REPO_NAME"
+        done
+
+    else
+        # If the user chooses option 2, it calls the deletion script directl
+        repository_search_message
+        ./delete_repo
+    fi
+}
+
+main() {
+    search_repo
+    select_repo
+}
+
+main
