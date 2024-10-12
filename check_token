@@ -1,0 +1,33 @@
+#!/bin/bash
+
+PLATFORM="$2"
+USERNAME="$3"
+TOKEN="$4"
+
+USER_DATA_FILE="$HOME/.config/gstoolbox/token"
+
+read -r FILE_PLATFORM FILE_USERNAME FILE_TOKEN < <(awk '{print $1, $2, $3}' "$USER_DATA_FILE")
+
+if [[ "$PLATFORM" == "$FILE_PLATFORM" && "$USERNAME" == "$FILE_USERNAME" && "$TOKEN" == "$FILE_TOKEN" ]]; then
+    exit 0
+
+elif [[ "$PLATFORM" == "$FILE_PLATFORM" && "$USERNAME" == "$FILE_USERNAME" ]]; then
+
+    # If PLATFORM and USERNAME are the same but the TOKEN is different
+    read -r -p "TOKEN differs, do you want to update it? (y/n):" option
+    if [[ "$option" == "s" ]]; then
+        echo "$PLATFORM $USERNAME $TOKEN" >> "$USER_DATA_FILE"
+        echo "TOKEN updated successfully!"
+    else
+        echo "TOKEN was not updated!"
+    fi
+else
+    # If PLATFORM or USERNAME are different
+    read -r -p "Do you want to save the data for eventual (s/n): " option
+    if [[ "$option" == "s" ]]; then
+        echo "$PLATFORM $USERNAME $TOKEN" >> "$USER_DATA_FILE"
+        echo "data saved successfully!"
+    else
+        echo "Data was not saved"
+    fi
+fi
