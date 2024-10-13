@@ -1,54 +1,39 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-# Author: Josenilson Ferreira da Silva
-# Date: August 2024
-# License: GNU General Public License v3.0
 
-set -e
-
-# File path where data will be stored
 USER_DATA_FILE="$HOME/.config/gstoolbox/token"
 
-# Function to save data to file
-save_token() {
-    local platform=$PLATFORM
-    local username=$USERNAME
-    local token=$TOKEN
+# Lê os dados do arquivo
+read -r FILE_PLATFORM FILE_USERNAME FILE_TOKEN < <(awk '{print $1, $2, $3}' "$USER_DATA_FILE")
 
-# Define colors
-BRIGHT_RED='\033[1;31m' # Bright Red
-GREEN='\033[0;32m'    # Green
-YELLOW='\033[1;33m'   # Yellow
-NONE='\033[0m'        # No color
-
-# Checks if the file exists, otherwise creates it
-if [ ! -f "$USER_DATA_FILE" ]; then
-    mkdir -p "$(dirname "$USER_DATA_FILE")"
-    touch "$USER_DATA_FILE"
+# Testa se todos os dados estão iguais
+if [[ "$PLATFORM" == "$FILE_PLATFORM" && "$USERNAME" == "$FILE_USERNAME" && "$TOKEN" == "$FILE_TOKEN" ]]; then
+    echo "Todos os dados estão iguais. Saindo..."
+    exit 0
 fi
 
-# Checks if the platform and user combination already exists in the file
-if grep -q "^${platform} ${username} " "$USER_DATA_FILE"; then
-    # Checks if the token is different
-    current_token=$(grep "^${platform}: ${username}: " "$USER_DATA_FILE" | awk '{print $3}')
-    if [ "$current_token" != "$token:" ]; then
-        echo "Different token found. Do you want to update? (y/n)"
-        read -r update_choice
-        if [ "$update_choice" == "y" ]; then
-            sed -i "s/^${platform} ${username} .*/${platform} ${username} ${token}/" "$USER_DATA_FILE"
-            echo -e "${YELLOW}Token updated successfully.${NONE}"
-        fi
-    fi
-else
-    # If it doesn't find the platform/user, it asks if you want to save the token
-    echo "Do you want to save the token for future reference? (y/n)"
-    read -r save_choice
-    if [ "$save_choice" == "y" ]; then
-        # Add a line break before saving
-      echo -e "\n${BRIGHT_RED}${platform}:${NONE} ${GREEN}${username}:${NONE} ${YELLOW}${token}${NONE}" >> "$USER_DATA_FILE"
-        echo -e "${YELLOW}Token saved successfully.${NONE}"
+# Testa se PLATFORM e USERNAME são iguais, mas TOKEN é diferente
+if [[ "$PLATFORM" == "$FILE_PLATFORM" && "$USERNAME" == "$FILE_USERNAME" && "$TOKEN" != "$FILE_TOKEN" ]]; then
+    read -r -p "TOKEN differs, do you want to update it? (y/n): " option
+    if [[ "$option" == "y" ]]; then
+        # Atualiza o TOKEN
+        grep -v "^$FILE_PLATFORM $FILE_USERNAME " "$USER_DATA_FILE" > "$USER_DATA_FILE.tmp"
+        echo "$PLATFORM $USERNAME $TOKEN" >> "$USER_DATA_FILE.tmp"
+        mv "$USER_DATA_FILE.tmp" "$USER_DATA_FILE"
+        echo "TOKEN updated successfully!"
+    else
+        echo "TOKEN was not updated!"
     fi
 fi
-}
-# Executes the function to verify and save the token
-save_token
+
+# Se PLATFORM ou USERNAME forem diferentes, adiciona os dados
+if [[ "$PLATFORM" != "$FILE_PLATFORM" || "$USERNAME" != "$FILE_USERNAME" ]]; then
+    read -r -p "Do you want to save the data for eventual use? (y/n): " option
+    if [[ "$option" == "y" ]]; then
+        # Incrementa os dados no arquivo, adicionando uma nova linha
+        echo "$PLATFORM $USERNAME $TOKEN" >> "$USER_DATA_FILE"
+        echo "Data saved successfully!"
+    else
+        echo "Data was not saved!"
+    fi
+fi
