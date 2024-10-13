@@ -1,39 +1,49 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 
 USER_DATA_FILE="$HOME/.config/gstoolbox/token"
 
-# Lê os dados do arquivo
-read -r FILE_PLATFORM FILE_USERNAME FILE_TOKEN < <(awk '{print $1, $2, $3}' "$USER_DATA_FILE")
+PLATFORM=$2
+USERNAME=$3
+TOKEN=$4
 
-# Testa se todos os dados estão iguais
-if [[ "$PLATFORM" == "$FILE_PLATFORM" && "$USERNAME" == "$FILE_USERNAME" && "$TOKEN" == "$FILE_TOKEN" ]]; then
-    echo "Todos os dados estão iguais. Saindo..."
-    exit 0
-fi
+mkdir -p "$(dirname "$USER_DATA_FILE")"
 
-# Testa se PLATFORM e USERNAME são iguais, mas TOKEN é diferente
-if [[ "$PLATFORM" == "$FILE_PLATFORM" && "$USERNAME" == "$FILE_USERNAME" && "$TOKEN" != "$FILE_TOKEN" ]]; then
-    read -r -p "TOKEN differs, do you want to update it? (y/n): " option
-    if [[ "$option" == "y" ]]; then
-        # Atualiza o TOKEN
-        grep -v "^$FILE_PLATFORM $FILE_USERNAME " "$USER_DATA_FILE" > "$USER_DATA_FILE.tmp"
-        echo "$PLATFORM $USERNAME $TOKEN" >> "$USER_DATA_FILE.tmp"
-        mv "$USER_DATA_FILE.tmp" "$USER_DATA_FILE"
-        echo "TOKEN updated successfully!"
-    else
-        echo "TOKEN was not updated!"
-    fi
-fi
+# Verifica se o arquivo existe
+if [ -f "$USER_DATA_FILE" ]; then
+    TOKEN_ATUALIZADO=false
+    while IFS= read -r line; do
+        FILE_PROJECT=$(echo "$line" | awk '{print $1}')
+        FILE_USER=$(echo "$line" | awk '{print $2}')
+        FILE_TOKEN=$(echo "$line" | awk '{print $3}')
 
-# Se PLATFORM ou USERNAME forem diferentes, adiciona os dados
-if [[ "$PLATFORM" != "$FILE_PLATFORM" || "$USERNAME" != "$FILE_USERNAME" ]]; then
-    read -r -p "Do you want to save the data for eventual use? (y/n): " option
-    if [[ "$option" == "y" ]]; then
-        # Incrementa os dados no arquivo, adicionando uma nova linha
+        # Check if PROJECT, USER match and TOKEN is different
+        if [ "$FILE_PROJECT" == "$PLATFORM" ] && [ "$FILE_USER" == "$USERNAME" ] && [ "$FILE_TOKEN" != "$TOKEN" ]; then
+            read -r -p "Do you want to upgrade TOKEN to $TOKEN (y/n): " response </dev/tty
+            if [[ "$response" == "y" ]]; then
+                sed -i "/^$PLATFORM $USERNAME /c\\$PLATFORM $USERNAME $TOKEN" "$USER_DATA_FILE"
+                echo "Token successfully updated!"
+                TOKEN_ATUALIZADO=true
+                break
+            else
+                echo "Token has not been updated."
+                TOKEN_ATUALIZADO=true
+                break
+            fi
+        elif [ "$FILE_PROJECT" == "$PLATFORM" ] && [ "$FILE_USER" == "$USERNAME" ] && [ "$FILE_TOKEN" == "$TOKEN" ]; then
+            echo "TOKEN is already updated for this project and user!"
+            TOKEN_ATUALIZADO=true
+            break
+        fi
+    done < "$USER_DATA_FILE"
+
+    # If no data was found for PROJECT and USER
+    if [ "$TOKEN_ATUALIZADO" = false ]; then
+       read -r -p "Do you want to save the Token for later use (y/n): " response </dev/tty
+       if [[ "$response" == "y" ]]; then
         echo "$PLATFORM $USERNAME $TOKEN" >> "$USER_DATA_FILE"
-        echo "Data saved successfully!"
-    else
-        echo "Data was not saved!"
+       fi
     fi
+else
+    # If the file does not exist, create a new one and add the data
+    echo "$PLATFORM $USERNAME $TOKEN" > "$USER_DATA_FILE"
 fi

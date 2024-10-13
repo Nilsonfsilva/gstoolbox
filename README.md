@@ -1,86 +1,85 @@
 
 # 🛠️ Git Shell Toolbox (gstoolbox)
 
-**Git Shell Toolbox (gstoolbox)** é uma poderosa ferramenta de linha de comando (CLI) que facilita e automatiza tarefas comuns no gerenciamento de repositórios Git, suportando **GitHub**, **GitLab** e **Salsa**. Com gstoolbox, você pode **excluir, criar, listar arquivos, buscar repositórios, clonar e enviar projetos** - tudo sem precisar navegar pela interface web. Utilize APIs e tokens de autenticação para um processo rápido, seguro e eficiente.
+**Git Shell Toolbox (gstoolbox)** is a powerful command-line tool (CLI) that facilitates and automates common tasks in Git repository management, supporting **GitHub**, **GitLab**, and **Salsa** platforms.
 
-## 🚀 Funcionalidades
+## 🚀 Features
 
-- **🔗 Suporte para múltiplas plataformas:** Gerencie repositórios no GitHub, GitLab e Salsa de forma integrada.
-- **🗑️ Excluir um ou múltiplos repositórios:** Simplifique a gestão de repositórios, excluindo vários de uma só vez ou apenas um.
-- **📁 Criar novos repositórios:** Crie repositórios rapidamente em qualquer uma das plataformas suportadas.
-- **📋 Listar arquivos em repositórios:** Obtenha uma visão geral dos arquivos contidos em seus repositórios.
-- **🔍 Buscar repositórios:** Encontre rapidamente repositórios por nome ou critérios específicos.
-- **📂 Clonar repositórios:** Clone repositórios diretamente para seu ambiente de trabalho.
-- **📤 Enviar projetos:** Envie mudanças e atualizações para os repositórios diretamente via CLI.
-- **🔐 Gerenciamento seguro de tokens:** Gerencie seus tokens de API de forma segura, garantindo suporte a diversas plataformas.
-- **💻 Integração com o terminal:** Ideal para usuários que preferem a agilidade e eficiência do terminal.
+- **🔗 Multi-platform support:** Manage repositories on GitHub, GitLab, and Salsa seamlessly.
+- **🗑️ Delete one or multiple repositories:** Simplify repository management by deleting multiple repositories at once or just one.
+- **📁 Create new repositories:** Quickly create repositories on any supported platform.
+- **📋 List files in repositories:** Get an overview of the files in your repositories.
+- **🔍 Search repositories:** Quickly find repositories by name or specific criteria.
+- **📂 Clone repositories:** Clone repositories directly into your workspace.
+- **📤 Push projects:** Push changes and updates to repositories directly via CLI.
+- **🔐 Secure token management:** Manage your API tokens securely, supporting multiple platforms.
+- **💻 Terminal integration:** Ideal for users who prefer the speed and efficiency of the terminal.
 
-## 📦 Instalação
+## 📦 Installation
 
-1. **Clone o repositório gstoolbox:**
+1. **Clone the gstoolbox repository:**
     ```bash
-    git clone https://github.com/usuario/gstoolbox.git
+    git clone https://github.com/user/gstoolbox.git
     ```
 
-2. **Navegue até o diretório gstoolbox:**
+2. **Navigate to the gstoolbox directory:**
     ```bash
     cd gstoolbox
     ```
 
-3. **Instale as dependências (se houver):**
+3. **Install the dependencies (if any):**
     ```bash
-    # Exemplo de comando, caso seja necessário instalar dependências
+    # Example command, if you need to install dependencies
     pip install -r requirements.txt
     ```
 
-4. **Configure seu token de API:**
+4. **Set up your API token:**
     ```bash
-    export GIT_API_TOKEN=seu_token_aqui
+    export GIT_API_TOKEN=your_token_here
     ```
 
-## 🛠️ Uso
+## 🛠️ Usage
 
-Aqui estão alguns dos comandos principais que você pode utilizar com o gstoolbox:
+Here are some of the main commands you can use with gstoolbox:
 
-- **🗑️ Excluir repositórios:**
+- **🗑️ Delete repositories:**
     ```bash
-    gstoolbox --delete plataforma usuário token
+    gstoolbox --delete platform user token
     ```
-    Exclua um ou múltiplos repositórios de uma só vez.
+    Delete one or multiple repositories at once.
 
-- **📁 Criar um novo repositório:**
+- **📁 Create a new repository:**
     ```bash
-    gstoolbox --create plataforma usuário token
-    ```
-
-- **📋 Listar arquivos de um repositório:**
-    ```bash
-    gstoolbox list-files nome_do_repo
+    gstoolbox --create platform user token
     ```
 
-- **🔍 Buscar repositórios:**
+- **📋 List repository files:**
     ```bash
-    gstoolbox --find plataforma usuário token
+    gstoolbox list-files repo_name
     ```
 
-- **📂 Clonar um repositório:**
+- **🔍 Search repositories:**
     ```bash
-    gstoolbox clone-repo nome_do_repo
+    gstoolbox --find platform user token
     ```
 
-- **📤 Enviar mudanças para um repositório:**
+- **📂 Clone a repository:**
     ```bash
-    gstoolbox push-repo nome_do_repo
+    gstoolbox clone-repo repo_name
     ```
 
-## 🤝 Contribuindo
+- **📤 Push changes to a repository:**
 
-Contribuições são bem-vindas! Se você encontrar algum problema ou tiver sugestões de melhorias, sinta-se à vontade para abrir uma issue ou enviar um pull request.
+^G Help         ^O Save        ^W Where Is?    ^
 
-## 📝 Licença
+## 🤝 Contributing
 
-Este projeto está licenciado sob a [Licença MIT](LICENSE).
+Contributions are welcome! If you encounter any issues or have suggestions for improvements, feel free to open an issue or submit a pull request.
 
-## 🙏 Agradecimentos
+## 📝 License
 
-Agradecemos a todos os contribuidores e à comunidade de código aberto por seu apoio e colaboração.
+This project is licensed under the [MIT License](LICENSE).
+
+## 🙏 Acknowledgments
+
+Special thanks to all contributors and the open-source community for their support and collaboration.

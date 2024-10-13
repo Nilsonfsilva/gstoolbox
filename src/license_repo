@@ -79,8 +79,8 @@ generate_license() {
 
 # Function to push the license to the remote repository
 send_license() {
-    read -p "$(echo -e '\033[1;33mDo you want to push the changes to a remote repository? (yes/no): \033[0m')" push_remote
-    if [[ "$push_remote" == "yes" ]]; then
+    read -p "$(echo -e '\033[1;33mDo you want to push the changes to a remote repository? (y/no): \033[0m')" push_remote
+    if [[ "$push_remote" == "y" ]]; then
         # Ensure the necessary information is set
         if [ -z "$platform_host" ] || [ -z "$repo_name" ] || [ -z "$USERNAME" ]; then
             echo "Required information is missing. Make sure platform_host, repo_name, and USERNAME are set."

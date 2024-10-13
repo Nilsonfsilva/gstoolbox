@@ -18,7 +18,7 @@ DOC_FILES = doc/gstoolbox.1
 SCRIPT = src/gstoolbox
 
 # Native dependencies for Debian
-DEBIAN_DEPENDENCIES = jq git curl nano original-awk
+DEBIAN_DEPENDENCIES = jq git curl nano original-awk bats
 
 # Colors
 GREEN := \033[1;32m

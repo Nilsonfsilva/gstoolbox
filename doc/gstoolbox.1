@@ -74,55 +74,55 @@ Lists all saved token users.
 .fi
 .SH EXAMPLES
 .P
- Display help:
+\fBAdd a local license:\fR
 .nf
-\fBgstoolbox\fR --help
+\fBe.g.: gstoolbox\fR --license-local
 .fi
 .P
-Find a user's repositories:
+\fBCreate a new repository:\fR
 .nf
-\fBgstoolbox\fR --find platform user token
-\fBgstoolbox\fR --find github Petter ghp_TIiOOo9948484099x9OTNOyJIqpY32ggf5
+\fBe.g.: gstoolbox\fR --create
 .fi
 .P
-Delete a user's repositories:
+\fBDelete a user's repositories:\fR
 .nf
 \fBgstoolbox\fR --delete platform user token
-\fBgstoolbox\fR --delete github Petter ghp_TIiOOo9948484099x9OTNOyJIqpY32ggf5
+\fBe.g.: gstoolbox\fR --delete github Petter ghp_TIiOOo9948484099x9OTNOyJIqpY32ggf5
 .fi
 .P
-Create a new repository:
+\fBDisplay help:\fR
 .nf
-\fBgstoolbox\fR --create
+\fBe.g.: gstoolbox\fR --help
 .fi
 .P
-Add a local license:
+\fBFind a user's repositories:\fR
 .nf
-\fBgstoolbox\fR --license-local
+\fBgstoolbox\fR --find platform user token
+\fBe.g. gstoolbox\fR --find github Petter ghp_TIiOOo9948484099x9OTNOyJIqpY32ggf5
 .fi
 .P
-List branches in a repository:
+\fBList branches in a repository:\fR
 .nf
 \fBgstoolbox\fR --list-branches platform user token
-\fBgstoolbox\fR --list-branches github Petter ghp_TIiOOo9948484099x9OTNOyJIqpY32ggf5
+\fBe.g.: gstoolbox\fR --list-branches github Petter ghp_TIiOOo9948484099x9OTNOyJIqpY32ggf5
 .fi
 .P
-List tags in a repository:
-.nf
-\fBgstoolbox\fR --list-tags platform user token
-\fBgstoolbox\fR --list-tags github Petter ghp_TIiOOo9948484099x9OTNOyJIqpY32ggf5
-.fi
-.P
-List files in a repository:
+\fBList files in a repository:\fR
 .nf
 \fBgstoolbox\fR --list-files platform user token
-\fBgstoolbox\fR --list-files github Petter ghp_TIiOOo9948484099x9OTNOyJIqpY32ggf5
+\fBe.g.: gstoolbox\fR --list-files github Petter ghp_TIiOOo9948484099x9OTNOyJIqpY32ggf5
 .fi
 .P
-Start a CI/CD pipeline to run tests:
+\fBList tags in a repository:\fR
+.nf
+\fBgstoolbox\fR --list-tags platform user token
+\fBe.g.: gstoolbox\fR --list-tags github Petter ghp_TIiOOo9948484099x9OTNOyJIqpY32ggf5
+.fi
+.P
+\fBStart a CI/CD pipeline to run tests:\fR
 .nf
 \fBgstoolbox\fR --pipeline-trigger platform
-\fBgstoolbox\fR --pipeline-trigger gitlab
+\fBe.g.: gstoolbox\fR --pipeline-trigger gitlab
 .fi
 .SH INSTALLATION
 .P
