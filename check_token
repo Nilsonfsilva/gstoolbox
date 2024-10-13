@@ -10,18 +10,22 @@ read -r FILE_PLATFORM FILE_USERNAME FILE_TOKEN < <(awk '{print $1, $2, $3}' "$US
 
 if [[ "$PLATFORM" == "$FILE_PLATFORM" && "$USERNAME" == "$FILE_USERNAME" && "$TOKEN" == "$FILE_TOKEN" ]]; then
     exit 0
+fi
 
-elif [[ "$PLATFORM" == "$FILE_PLATFORM" && "$USERNAME" == "$FILE_USERNAME" ]]; then
-
+if [[ "$PLATFORM" == "$FILE_PLATFORM" && "$USERNAME" == "$FILE_USERNAME" && "$TOKEN" == "$FILE_TOKEN" ]]; then
     # If PLATFORM and USERNAME are the same but the TOKEN is different
     read -r -p "TOKEN differs, do you want to update it? (y/n):" option
     if [[ "$option" == "s" ]]; then
-        echo "$PLATFORM $USERNAME $TOKEN" >> "$USER_DATA_FILE"
+       grep -v "^$FILE_PLATFORM $FILE_USERNAME " "$USER_DATA_FILE" > "$USER_DATA_FILE.tmp"
+        echo "$PLATFORM $USERNAME $TOKEN" >> "$USER_DATA_FILE.tmp"
+        mv "$USER_DATA_FILE.tmp" "$USER_DATA_FILE"
         echo "TOKEN updated successfully!"
     else
         echo "TOKEN was not updated!"
     fi
-else
+fi
+
+if  [[ "$PLATFORM" != "$FILE_PLATFORM" || "$USERNAME" != "$FILE_USERNAME" ]]; then
     # If PLATFORM or USERNAME are different
     read -r -p "Do you want to save the data for eventual (s/n): " option
     if [[ "$option" == "s" ]]; then
