@@ -24,12 +24,8 @@ echo -e "\033[1;31mError deleting repository with \033[1;34m$repo_id\033[0m\033[
 echo -e " Check if the token is correct or if it is a valid token!\033[0m"
 }
 
-create_repository() {
-echo -e "\033[1;31mPlease wait while we create the \033[1;34m${repo_name}\033[1;31m repository\033[0m"
-}
-
 create_repository_successfully() {
-echo -e "\e[32;1mRepository '$repo_name' created successfully on Salsa.\e[0m"
+echo -e "\e[32;1mRepository '$repo_name' created successfully on $PLATFORM.\e[0m"
 }
 
 failed_create_repository() {

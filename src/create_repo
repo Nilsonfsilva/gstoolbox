@@ -4,13 +4,14 @@
 # Date: August 2024
 # License: GNU General Public License v3.0
 
+set -e
+
 export PLATFORM
 export USERNAME
 export TOKEN
 
 # Calls the message function
 source ./src/default_message
-set -e
 
 # to show platform options
 show_platform_options() {
@@ -20,24 +21,14 @@ show_platform_options() {
     echo -e "\e[34;1m3) Salsa\e[0m"
 }
 
-# to create README.md file
-create_readme_file() {
-    echo "Creating README.md file..."
-    echo "# $repo_name" > README.md
-    echo "" >> README.md
-    echo "This is a repository for $repo_name." >> README.md
-    echo "" >> README.md
-    echo "## License" >> README.md
-}
-
 # Show platform options and get user input
 show_platform_options
-read -p "$(echo -e '\033[1;33mChoose the platform (1-3): \033[0m')" PLATFORM
-read -p "$(echo -e '\033[1;33mWhat is the name of the repository owner? \033[0m')" USERNAME
+read -r -p "$(echo -e '\033[1;33mChoose the platform (1-3): \033[0m')" PLATFORM
+read -r -p "$(echo -e '\033[1;33mWhat is the name of the repository owner? \033[0m')" USERNAME
 
 # User prompts
-read -p "$(echo -e '\033[1;33mEnter the name of the repository you want to create: \033[0m')" repo_name
-read -p "$(echo -e '\033[1;33mRepository type (1: Public or 2: Private): \033[0m')" repo_type
+read -r -p "$(echo -e '\033[1;33mEnter the name of the repository you want to create: \033[0m')" repo_name
+read -r -p "$(echo -e '\033[1;33mRepository type (1: Public or 2: Private): \033[0m')" repo_type
 
 # Set visibility based on user input
 if [ "$repo_type" == "1" ]; then
@@ -49,41 +40,32 @@ else
     exit 1
 fi
 
-# Ask if the user wants to create a README.md
-read -p "Do you want to create a README.md file? (yes/no): " create_readme
-
-# Check the user's response
-if [[ "$create_readme" == "yes" ]]; then
-    create_readme_file
-    echo "README.md file created successfully."
-elif [[ "$create_readme" == "no" ]]; then
-    echo "Skipping README.md creation."
-else
-    echo "Invalid input. Please enter 'yes' or 'no'."
-fi
-
 # Remote repository creation
 case $PLATFORM in
     1)
         PLATFORM=GitHub
-        read -p "$(echo -e '\033[1;33mEnter your GitHub access token: \033[0m')" TOKEN
+        read -r -p "$(echo -e '\033[1;33mEnter your GitHub access token: \033[0m')" TOKEN
         repository_search_message
         response=$(curl -s -H "Authorization: token $TOKEN" \
               -d "{\"name\":\"$repo_name\",\"private\":$([ "$visibility" == "private" ] && echo true || echo false)}" \
               https://api.github.com/user/repos)
 
+
         if echo "$response" | jq -e '.id' > /dev/null; then
             create_repository_successfully
             platform_host="github.com"
             remote_url="git@github.com:$USERNAME/$repo_name.git"
+            echo "Remote URL: $remote_url"
         else
             failed_create_repository
+            echo "Error details: $response"  # Mostrar detalhes do erro
             exit 1
         fi
+
         ;;
     2)
         PLATFORM=GitLab
-        read -p "$(echo -e '\033[1;33mEnter your GitHub access token: \033[0m')" TOKEN
+        read -r -p "$(echo -e '\033[1;33mEnter your GitLab access token: \033[0m')" TOKEN
         repository_search_message
         response=$(curl -s --request POST --form "name=$repo_name" \
               --form "visibility=$visibility" \
@@ -101,7 +83,7 @@ case $PLATFORM in
         ;;
     3)
         PLATFORM=Salsa
-        read -p "$(echo -e '\033[1;33mEnter your GitHub access token: \033[0m')" TOKEN
+        read -r -p "$(echo -e '\033[1;33mEnter your GitHub access token: \033[0m')" TOKEN
         repository_search_message
         response=$(curl -s --request POST --form "name=$repo_name" \
               --form "visibility=$visibility" \
@@ -129,6 +111,6 @@ export repo_name
 export remote_url
 
 # Call external script to create LICENSE file
-./src/license_repo  --license-local --send
+./src/license_repo --license-local --send
 
 echo "Repository setup complete."

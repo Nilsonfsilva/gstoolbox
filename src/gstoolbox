@@ -23,7 +23,7 @@ echo -e "\033[35m- Salsa (https://salsa.debian.org)\033[0m"
 
 # Displays tool options
 show_help() {
-    echo "Usage: rewipe [OPTIONS] [PLATFORM] [USERNAME]"
+    echo "Usage: gstoolbox [OPTIONS] [PLATFORM] [USERNAME]"
     echo
     echo "Options:"
     echo "  --create                         Create remote repositories"
