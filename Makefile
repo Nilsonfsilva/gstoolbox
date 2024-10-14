@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Project information
-VERSION = 0.1.0
+VERSION = 0.1.1
 AUTHOR = Josenilson Ferreira da Silva
 EMAIL = nilsonfsilva@hotmail.com
 PACKAGE = gstoolbox
@@ -18,7 +18,8 @@ DOC_FILES = doc/gstoolbox.1
 SCRIPT = src/gstoolbox
 
 # Native dependencies for Debian
-DEBIAN_DEPENDENCIES = jq git curl nano original-awk bats
+DEBIAN_DEPENDENCIES = jq git curl nano original-awk python3-testinfra python3-pytest-mock
+
 
 # Colors
 GREEN := \033[1;32m

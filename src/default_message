@@ -34,7 +34,7 @@ echo -e "\033[1;31mFailed to create repository in \033[1;34m${platform_option}\0
 
 platform_invalid() {
     echo -e "\033[1;31mInvalid platform! Check the entered data!\033[0m"
-    echo -e "\033[1;31mSee the supported platforms with the command: \033[1;33mgstoolbox --support platform\033[0m"
+    echo -e "\033[1;31mSee the supported platforms with the command: \033[1;33mgstoolbox --support-platform\033[0m"
 }
 
 incorrect_parameters() {
